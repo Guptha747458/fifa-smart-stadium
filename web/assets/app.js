@@ -3,7 +3,7 @@
    Accessibility: ARIA live regions, keyboard nav, high-contrast toggle. */
 "use strict";
 
-const API = "";
+const API = ""; // For Netlify frontend: enter your Render backend URL here (e.g., "https://your-app.onrender.com")
 let LANG = "en";
 let LANGS = [];
 let ACTIVE_PATH = [];
@@ -469,8 +469,14 @@ async function updateSustainabilityStats() {
 /* ---------- Live WebSocket Streaming Feed ---------- */
 function startLive() {
   let ws;
-  const protocol = location.protocol === "https:" ? "wss://" : "ws://";
-  const address = protocol + location.host + "/ws/live";
+  let address;
+  if (API) {
+    const wsBase = API.replace(/^http/, "ws"); // Converts http:// to ws:// and https:// to wss://
+    address = wsBase.endsWith("/") ? wsBase + "ws/live" : wsBase + "/ws/live";
+  } else {
+    const protocol = location.protocol === "https:" ? "wss://" : "ws://";
+    address = protocol + location.host + "/ws/live";
+  }
   
   try { 
     ws = new WebSocket(address); 
