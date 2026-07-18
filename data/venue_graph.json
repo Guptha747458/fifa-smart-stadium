@@ -1,0 +1,426 @@
+{
+  "venue": {
+    "name": "FIFA26 MetLife Stadium (Simulated)",
+    "capacity": 82500,
+    "entrances": [
+      "GATE_A",
+      "GATE_B",
+      "GATE_C",
+      "GATE_D"
+    ]
+  },
+  "nodes": {
+    "GATE_A": {
+      "name": "Gate A (North)",
+      "type": "entrance",
+      "x": 100,
+      "y": 0,
+      "zone": "outside",
+      "accessible": true
+    },
+    "GATE_B": {
+      "name": "Gate B (East)",
+      "type": "entrance",
+      "x": 400,
+      "y": 50,
+      "zone": "outside",
+      "accessible": true
+    },
+    "GATE_C": {
+      "name": "Gate C (South)",
+      "type": "entrance",
+      "x": 200,
+      "y": 400,
+      "zone": "outside",
+      "accessible": true
+    },
+    "GATE_D": {
+      "name": "Gate D (West)",
+      "type": "entrance",
+      "x": 0,
+      "y": 200,
+      "zone": "outside",
+      "accessible": true
+    },
+    "CONCOURSE_N": {
+      "name": "North Concourse",
+      "type": "concourse",
+      "x": 100,
+      "y": 80,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "CONCOURSE_E": {
+      "name": "East Concourse",
+      "type": "concourse",
+      "x": 320,
+      "y": 120,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "CONCOURSE_S": {
+      "name": "South Concourse",
+      "type": "concourse",
+      "x": 200,
+      "y": 320,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "CONCOURSE_W": {
+      "name": "West Concourse",
+      "type": "concourse",
+      "x": 80,
+      "y": 200,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "SEC_101": {
+      "name": "Section 101 (Lower)",
+      "type": "seat",
+      "x": 150,
+      "y": 150,
+      "zone": "lower",
+      "accessible": true
+    },
+    "SEC_120": {
+      "name": "Section 120 (Lower)",
+      "type": "seat",
+      "x": 250,
+      "y": 160,
+      "zone": "lower",
+      "accessible": true
+    },
+    "SEC_305": {
+      "name": "Section 305 (Upper)",
+      "type": "seat",
+      "x": 180,
+      "y": 220,
+      "zone": "upper",
+      "accessible": true
+    },
+    "SEC_340": {
+      "name": "Section 340 (Upper, wheelchair)",
+      "type": "seat",
+      "x": 120,
+      "y": 240,
+      "zone": "upper",
+      "accessible": true
+    },
+    "REST_N": {
+      "name": "Restroom North (accessible)",
+      "type": "restroom",
+      "x": 110,
+      "y": 70,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "REST_S": {
+      "name": "Restroom South",
+      "type": "restroom",
+      "x": 210,
+      "y": 310,
+      "zone": "concourse",
+      "accessible": false
+    },
+    "FOOD_1": {
+      "name": "Food Vendor #1 (Halal/Veg)",
+      "type": "food",
+      "x": 130,
+      "y": 110,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "FOOD_2": {
+      "name": "Food Vendor #2 (Local cuisine)",
+      "type": "food",
+      "x": 270,
+      "y": 130,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "ELEV_1": {
+      "name": "Accessible Elevator 1",
+      "type": "elevator",
+      "x": 90,
+      "y": 90,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "RAMP_1": {
+      "name": "Wheelchair Ramp 1",
+      "type": "ramp",
+      "x": 70,
+      "y": 100,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "EXIT_N": {
+      "name": "Emergency Exit North",
+      "type": "exit",
+      "x": 100,
+      "y": 40,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "EXIT_S": {
+      "name": "Emergency Exit South",
+      "type": "exit",
+      "x": 200,
+      "y": 360,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "TRANSIT_HUB": {
+      "name": "Transit Hub (Train/Bus)",
+      "type": "transit",
+      "x": 0,
+      "y": 0,
+      "zone": "outside",
+      "accessible": true
+    },
+    "PARKING_E": {
+      "name": "East Parking (EV charging)",
+      "type": "parking",
+      "x": 500,
+      "y": 50,
+      "zone": "outside",
+      "accessible": true
+    },
+    "SHUTTLE": {
+      "name": "Shuttle Stop",
+      "type": "transit",
+      "x": 60,
+      "y": -20,
+      "zone": "outside",
+      "accessible": true
+    },
+    "MEDICAL": {
+      "name": "First Aid / Medical",
+      "type": "medical",
+      "x": 160,
+      "y": 100,
+      "zone": "concourse",
+      "accessible": true
+    },
+    "INFO": {
+      "name": "Fan Info Desk",
+      "type": "info",
+      "x": 140,
+      "y": 90,
+      "zone": "concourse",
+      "accessible": true
+    }
+  },
+  "edges": [
+    {
+      "from": "GATE_A",
+      "to": "CONCOURSE_N",
+      "dist": 80,
+      "secs": 60,
+      "accessible": false
+    },
+    {
+      "from": "GATE_B",
+      "to": "CONCOURSE_E",
+      "dist": 80,
+      "secs": 60,
+      "accessible": false
+    },
+    {
+      "from": "GATE_C",
+      "to": "CONCOURSE_S",
+      "dist": 80,
+      "secs": 60,
+      "accessible": false
+    },
+    {
+      "from": "GATE_D",
+      "to": "CONCOURSE_W",
+      "dist": 80,
+      "secs": 60,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "CONCOURSE_E",
+      "dist": 220,
+      "secs": 165,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_E",
+      "to": "CONCOURSE_S",
+      "dist": 220,
+      "secs": 165,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_S",
+      "to": "CONCOURSE_W",
+      "dist": 220,
+      "secs": 165,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_W",
+      "to": "CONCOURSE_N",
+      "dist": 220,
+      "secs": 165,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "REST_N",
+      "dist": 40,
+      "secs": 35,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "FOOD_1",
+      "dist": 50,
+      "secs": 40,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "ELEV_1",
+      "dist": 30,
+      "secs": 25,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "INFO",
+      "dist": 45,
+      "secs": 38,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "MEDICAL",
+      "dist": 70,
+      "secs": 55,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_N",
+      "to": "EXIT_N",
+      "dist": 40,
+      "secs": 35,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_E",
+      "to": "FOOD_2",
+      "dist": 50,
+      "secs": 40,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_E",
+      "to": "SEC_101",
+      "dist": 70,
+      "secs": 55,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_E",
+      "to": "SEC_120",
+      "dist": 60,
+      "secs": 48,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_S",
+      "to": "REST_S",
+      "dist": 40,
+      "secs": 35,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_S",
+      "to": "SEC_305",
+      "dist": 70,
+      "secs": 55,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_S",
+      "to": "SEC_340",
+      "dist": 80,
+      "secs": 62,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_S",
+      "to": "EXIT_S",
+      "dist": 40,
+      "secs": 35,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_W",
+      "to": "SEC_340",
+      "dist": 60,
+      "secs": 48,
+      "accessible": false
+    },
+    {
+      "from": "CONCOURSE_W",
+      "to": "RAMP_1",
+      "dist": 30,
+      "secs": 25,
+      "accessible": false
+    },
+    {
+      "from": "ELEV_1",
+      "to": "SEC_340",
+      "dist": 90,
+      "secs": 120,
+      "accessible": true
+    },
+    {
+      "from": "RAMP_1",
+      "to": "CONCOURSE_N",
+      "dist": 35,
+      "secs": 40,
+      "accessible": true
+    },
+    {
+      "from": "GATE_D",
+      "to": "TRANSIT_HUB",
+      "dist": 120,
+      "secs": 90,
+      "accessible": false
+    },
+    {
+      "from": "GATE_A",
+      "to": "SHUTTLE",
+      "dist": 100,
+      "secs": 75,
+      "accessible": false
+    },
+    {
+      "from": "GATE_B",
+      "to": "PARKING_E",
+      "dist": 120,
+      "secs": 90,
+      "accessible": false
+    },
+    {
+      "from": "SEC_101",
+      "to": "SEC_120",
+      "dist": 90,
+      "secs": 70,
+      "accessible": false
+    },
+    {
+      "from": "SEC_305",
+      "to": "SEC_340",
+      "dist": 60,
+      "secs": 48,
+      "accessible": false
+    }
+  ]
+}

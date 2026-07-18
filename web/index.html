@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StadiumGenius AI — FIFA World Cup 2026</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@600;700;800&display=swap" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">⚽</span>
+      <span>StadiumGenius <strong>AI</strong></span>
+    </div>
+    <div class="top-actions">
+      <button id="contrast-btn" class="btn-ghost" aria-pressed="false">High Contrast</button>
+    </div>
+  </header>
+
+  <nav class="tabs-container">
+    <div class="tabs" role="tablist" aria-label="Solution modules">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="nav" id="tab-nav">🧭 Navigation</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="crowd" id="tab-crowd">👥 Crowd Mgmt</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="lang" id="tab-lang">🌐 Assistant</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="ops" id="tab-ops">📊 Ops Intel</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="transit" id="tab-transit">🚌 Trip Planner</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="sustain" id="tab-sustain">🌱 Sustainability</button>
+    </div>
+  </nav>
+
+  <main id="main">
+    <!-- HERO STATUS BANNER -->
+    <div class="hero-banner" role="region" aria-label="Live Match Status">
+      <div class="hero-match-info">
+        <span class="badge ok">Live Match</span>
+        <span class="hero-vs">USA vs GERMANY (MetLife Stadium)</span>
+      </div>
+      <div class="hero-clock">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span id="match-clock-time">Min: 45:00 (Halftime)</span>
+      </div>
+    </div>
+
+    <!-- 1. NAVIGATION -->
+    <section class="panel active" id="panel-nav" role="tabpanel" aria-labelledby="tab-nav">
+      <div class="grid-cols-2">
+        <div class="panel-left">
+          <h1>Smart Navigation &amp; Wayfinding</h1>
+          <p class="lead">Accessibility-first dynamic routing that adapts to live crowd density.</p>
+          
+          <form id="nav-form" class="card">
+            <div class="grid-2">
+              <label>From
+                <select id="nav-start" required></select>
+              </label>
+              <label>Destination Type
+                <select id="nav-goaltype">
+                  <option value="">— choose specific or type —</option>
+                  <option value="restroom">Restroom</option>
+                  <option value="food">Food Vendor</option>
+                  <option value="exit">Emergency Exit</option>
+                  <option value="medical">Medical / First Aid</option>
+                  <option value="transit">Transit Hub</option>
+                  <option value="seat">Seating Area</option>
+                </select>
+              </label>
+            </div>
+            <div class="grid-2">
+              <label>Or Specific Destination
+                <select id="nav-goal"><option value="">— none —</option></select>
+              </label>
+              <fieldset class="checks">
+                <legend>Options</legend>
+                <label class="chk"><input type="checkbox" id="nav-acc" /> ♿ Accessibility-first path</label>
+                <label class="chk"><input type="checkbox" id="nav-crowd" checked /> 👥 Crowd-aware re-routing</label>
+              </fieldset>
+            </div>
+            <button type="submit" class="btn-primary">Calculate Optimal Path</button>
+          </form>
+          <div id="nav-result" class="result" aria-live="polite"></div>
+        </div>
+        <div class="panel-right">
+          <h2>Interactive Stadium Map</h2>
+          <div class="map-wrapper" id="nav-map-wrapper">
+            <!-- SVG Map will be dynamically loaded here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CROWD MANAGEMENT -->
+    <section class="panel" id="panel-crowd" role="tabpanel" aria-labelledby="tab-crowd" hidden>
+      <div class="grid-cols-2">
+        <div class="panel-left">
+          <h1>Intelligent Crowd Management</h1>
+          <p class="lead">Real-time crowd monitoring and automatic bottleneck dispatching protocols.</p>
+          
+          <div class="card">
+            <h2>Operations Status</h2>
+            <div id="crowd-status" class="status-bar" aria-live="polite">Connecting to simulator…</div>
+            <div id="crowd-alerts" class="result"></div>
+          </div>
+
+          <form id="incident-form" class="card">
+            <h2>Simulate / Log Safety Incident</h2>
+            <div class="grid-2">
+              <label>Incident Type
+                <select id="inc-kind" required>
+                  <option value="medical">Medical Emergency</option>
+                  <option value="security">Security Alert</option>
+                  <option value="crowd_surge">Concourse Crowd Surge</option>
+                  <option value="weather">Weather Evac Event</option>
+                </select>
+              </label>
+              <label>Location Node
+                <select id="inc-node" required></select>
+              </label>
+            </div>
+            <label>Severity Level
+              <select id="inc-severity" required>
+                <option value="low">Low (Standard Precaution)</option>
+                <option value="medium">Medium (Volunteer Dispatch)</option>
+                <option value="high">High (First Responder Alert)</option>
+              </select>
+            </label>
+            <button type="submit" class="btn-primary" style="background: var(--crit); color: #fff;">Log Incident &amp; Request AI steps</button>
+          </form>
+        </div>
+        <div class="panel-right">
+          <h2>Live Density Heatmap</h2>
+          <div class="map-wrapper" id="crowd-map-wrapper">
+            <!-- Dynamic map with crowd heatmap overlay -->
+          </div>
+          <h2 style="margin-top:20px;">Crowd Density by Zone</h2>
+          <div id="crowd-heat" class="heatmap" role="img" aria-label="Crowd density by zone grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ASSISTANT & TRANSLATION -->
+    <section class="panel" id="panel-lang" role="tabpanel" aria-labelledby="tab-lang" hidden>
+      <div class="grid-cols-2">
+        <div class="panel-left">
+          <h1>Multilingual Translation</h1>
+          <p class="lead">Communicate instantly across 50+ languages with attendees and stewards.</p>
+          
+          <form id="tr-form" class="card">
+            <label>Phrases or Text
+              <textarea id="tr-text" rows="3" placeholder="Type or paste text to translate…"></textarea>
+            </label>
+            <div class="grid-2">
+              <label>Source Language <select id="tr-source"></select></label>
+              <label>Target Language <select id="tr-target"></select></label>
+            </div>
+            <button type="submit" class="btn-primary">Translate Text</button>
+          </form>
+          <div id="tr-result" class="result" aria-live="polite"></div>
+        </div>
+        
+        <div class="panel-right">
+          <h1>RAG-Backed Stadium Assistant</h1>
+          <p class="lead">Grounded answers regarding prohibited items, rules, and emergencies.</p>
+          
+          <div class="card chat-container">
+            <div class="chat-log" id="chat-log" aria-live="polite">
+              <div class="chat-bubble bot">Hello! I'm your StadiumGenius AI assistant. Ask me anything about transport, gates, sensory bags, safety protocols, or stadium rules!</div>
+            </div>
+            <form id="chat-form" style="display:flex; gap:10px;">
+              <input id="chat-msg" type="text" placeholder="e.g. Can I bring a drone or water bottle?" required aria-label="Message text" />
+              <button type="submit" class="btn-primary" style="white-space:nowrap;">Ask Assistant</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. OPS INTEL -->
+    <section class="panel" id="panel-ops" role="tabpanel" aria-labelledby="tab-ops" hidden>
+      <h1>Real-Time Operational Dashboard</h1>
+      <p class="lead">Central control decision-support showing active bottlenecks, live simulation ticks, and safety dispatches.</p>
+      
+      <div id="ops-summary" class="status-bar" aria-live="polite">Reading simulator status…</div>
+      
+      <div class="kpi-grid" id="ops-kpis" style="margin-bottom: 24px;"></div>
+      
+      <h2>Active Security / Medical Log</h2>
+      <div id="ops-incidents" class="result"></div>
+    </section>
+
+    <!-- 5. TRIP PLANNER -->
+    <section class="panel" id="panel-transit" role="tabpanel" aria-labelledby="tab-transit" hidden>
+      <div class="grid-cols-2">
+        <div class="panel-left">
+          <h1>Smart Transportation &amp; Trip Planner</h1>
+          <p class="lead">Dynamic departure advisor and connection planning tool based on crowd egress flows.</p>
+          
+          <form id="transit-form" class="card">
+            <div class="grid-2">
+              <label>Your Current Location
+                <select id="transit-start" required></select>
+              </label>
+              <label>Egress Priority
+                <select id="transit-mode">
+                  <option value="transit">Public Transit (Rail/Bus)</option>
+                  <option value="parking">East Parking (EV Charger &amp; Carpool)</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit" class="btn-primary">Generate Departure Plan</button>
+          </form>
+          
+          <div class="card" id="transit-advisor-box" style="display:none;">
+            <h2>Advisor Recommendation</h2>
+            <div id="transit-advisor-rec" class="status-bar" style="border-left: 4px solid var(--accent);"></div>
+          </div>
+        </div>
+        
+        <div class="panel-right">
+          <h2>Available Transit Connections</h2>
+          <div id="transit-options-log" class="result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SUSTAINABILITY -->
+    <section class="panel" id="panel-sustain" role="tabpanel" aria-labelledby="tab-sustain" hidden>
+      <div class="grid-cols-2">
+        <div class="panel-left">
+          <h1>Smart Waste &amp; Recycling Guide</h1>
+          <p class="lead">Search disposal rules for items and gain green reward points for the tournament.</p>
+          
+          <form id="sustain-form" class="card">
+            <label>Item to dispose
+              <input id="sustain-item-input" type="text" placeholder="e.g. aluminum can, hot dog wrapper, plastic bottle" required />
+            </label>
+            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--success) 0%, #0d9488 100%);">Find Correct Waste Bin</button>
+          </form>
+          
+          <div id="sustain-guide-result" class="result" aria-live="polite"></div>
+          
+          <div class="card" style="margin-top:20px;">
+            <h2>Your Smart Green Wallet</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:2.2rem; font-weight:800; color:var(--success);" id="user-green-points">0</div>
+                <div style="color:var(--muted); font-size:0.9rem;">FIFA Green Points Earned</div>
+              </div>
+              <span style="font-size:2.5rem;">🏆</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel-right">
+          <h1>Real-time Operations Carbon &amp; Utility Tracker</h1>
+          <p class="lead">Simulated live stadium footprint readings.</p>
+          
+          <div class="kpi-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+            <div class="kpi">
+              <div class="num" id="sustain-energy-val">820 kW</div>
+              <div class="lbl">Grid Power Usage</div>
+            </div>
+            <div class="kpi">
+              <div class="num" id="sustain-water-val">450 L/min</div>
+              <div class="lbl">Water Draw Rate</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Cumulative Sustainability Progress</h2>
+            <div style="margin-top: 10px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                <span>Plastic Cup Diversion Target</span>
+                <span id="sustain-diversion-pct">45%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="sustain-progress-bar"></div>
+              </div>
+            </div>
+            <div style="margin-top: 20px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div>
+                <div style="font-size:1.2rem; font-weight:700;" id="sustain-waste-total">1,240 kg</div>
+                <div style="font-size:0.8rem; color:var(--muted)">Total Waste Handled</div>
+              </div>
+              <div>
+                <div style="font-size:1.2rem; font-weight:700;" id="sustain-co2-total">2,604 kg</div>
+                <div style="font-size:0.8rem; color:var(--muted)">CO₂ Offsets Generated</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+  <footer class="footer" role="contentinfo">
+    <p>StadiumGenius AI · Generative AI for FIFA World Cup 2026 Operations &amp; Fan Experience · WCAG 2.1 AA Compliant</p>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>
