@@ -9,8 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy all application files
 COPY . .
 
-# Hugging Face Spaces default port is 7860
-EXPOSE 7860
+ENV PORT=8000
+EXPOSE 8000
 
-# Command to run uvicorn
-CMD ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "7860"]
+# Command to run uvicorn dynamically binding to $PORT
+CMD ["sh", "-c", "uvicorn api.server:app --host 0.0.0.0 --port $PORT"]
