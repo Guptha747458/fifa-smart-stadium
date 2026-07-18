@@ -180,7 +180,8 @@ async function loadLanguages() {
   const data = await r.json();
   LANGS = data.languages;
   const opts = LANGS.map(l => `<option value="${l.code}">${l.name}</option>`).join("");
-  el("lang-select").innerHTML = opts;
+  const langSel = el("lang-select");
+  if (langSel) langSel.innerHTML = opts;
   el("tr-source").innerHTML = `<option value="en">English (detect)</option>` + opts;
   el("tr-target").innerHTML = opts;
   el("tr-source").value = "en";
@@ -235,10 +236,13 @@ el("contrast-btn").addEventListener("click", () => {
 });
 
 /* ---------- Language Selection Event ---------- */
-el("lang-select").addEventListener("change", e => {
-  LANG = e.target.value;
-  showToast("Language changed to " + e.target.options[e.target.selectedIndex].text);
-});
+const _langSel = el("lang-select");
+if (_langSel) {
+  _langSel.addEventListener("change", e => {
+    LANG = e.target.value;
+    showToast("Language changed to " + e.target.options[e.target.selectedIndex].text);
+  });
+}
 
 /* ---------- Navigation Routing ---------- */
 el("nav-form").addEventListener("submit", async (e) => {
