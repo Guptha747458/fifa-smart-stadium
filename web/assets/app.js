@@ -74,6 +74,31 @@ const EDGES_LIST = [
 
 function el(id) { return document.getElementById(id); }
 
+/**
+ * Safely escape user-provided strings for insertion into innerHTML.
+ * Prevents XSS: <script> becomes &lt;script&gt;
+ */
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/**
+ * Wrapper for fetch() that catches network errors gracefully.
+ * @returns {Promise<any>} Parsed JSON or null on failure.
+ */
+async function apiFetch(url, options = {}) {
+  try {
+    const r = await fetch(url, options);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch (err) {
+    console.warn(`[StadiumGenius] API error for ${url}:`, err.message);
+    return null;
+  }
+}
+
 // Toast alert notification generator
 function showToast(message, type = "info") {
   const container = el("toast-container");
@@ -239,14 +264,6 @@ el("contrast-btn").addEventListener("click", () => {
   el("contrast-btn").setAttribute("aria-pressed", on ? "true" : "false");
 });
 
-/* ---------- Language Selection Event ---------- */
-const _langSel = el("lang-select");
-if (_langSel) {
-  _langSel.addEventListener("change", e => {
-    LANG = e.target.value;
-    showToast("Language changed to " + e.target.options[e.target.selectedIndex].text);
-  });
-}
 
 /* ---------- Navigation Routing ---------- */
 el("nav-form").addEventListener("submit", async (e) => {
@@ -260,13 +277,13 @@ el("nav-form").addEventListener("submit", async (e) => {
     crowd_aware: el("nav-crowd").checked,
   };
 
-  const r = await fetch(API + "/api/navigate", {
+  const data = await apiFetch(API + "/api/navigate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-  const data = await r.json();
-  renderNav(data);
+  if (data) renderNav(data);
+  else el("nav-result").innerHTML = `<div class="alert warning">Navigation request failed. Please try again.</div>`;
 });
 
 function renderNav(data) {
@@ -308,18 +325,15 @@ el("incident-form").addEventListener("submit", async (e) => {
     severity: el("inc-severity").value
   };
 
-  const r = await fetch(API + "/api/incident", {
+  const data = await apiFetch(API + "/api/incident", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-  const data = await r.json();
-  if (data.ok) {
-    showToast(`Logged manually: ${body.kind} incident at ${NODES_COORDS[body.node].name}!`, "critical");
-    // Trigger updates immediately
-    const opsRes = await fetch(API + "/api/ops");
-    const opsData = await opsRes.json();
-    renderOps(opsData);
+  if (data && data.ok) {
+    showToast(`Logged: ${body.kind} incident at ${NODES_COORDS[body.node].name}!`, "critical");
+    const opsData = await apiFetch(API + "/api/ops");
+    if (opsData) renderOps(opsData);
   }
 });
 
@@ -331,47 +345,61 @@ el("tr-form").addEventListener("submit", async (e) => {
     target: el("tr-target").value,
     source: el("tr-source").value
   };
-  const r = await fetch(API + "/api/translate", {
+  const data = await apiFetch(API + "/api/translate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-  const data = await r.json();
+  if (!data) {
+    el("tr-result").innerHTML = `<div class="alert warning">Translation request failed. Please try again.</div>`;
+    return;
+  }
   el("tr-result").innerHTML = data.ok
-    ? `<div class="alert"><span class="badge ok" style="margin-bottom:6px;">${data.method}</span><br><strong>${data.text}</strong></div>`
-    : `<div class="alert warning">${data.error}</div>`;
+    ? `<div class="alert"><span class="badge ok" style="margin-bottom:6px;">${data.method}</span><br><strong>${escapeHtml(data.text)}</strong></div>`
+    : `<div class="alert warning">${escapeHtml(data.error)}</div>`;
 });
 
 /* ---------- LLM chat ---------- */
 el("chat-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msgInput = el("chat-msg");
-  const msg = msgInput.value;
-  if (!msg.trim()) return;
+  const msg = msgInput.value.trim();
+  if (!msg) return;
 
-  // Append User message
+  // Append user message — use textContent to prevent XSS
   const log = el("chat-log");
-  log.innerHTML += `<div class="chat-bubble user">${msg}</div>`;
+  const userBubble = document.createElement("div");
+  userBubble.className = "chat-bubble user";
+  userBubble.textContent = msg;   // safe: no innerHTML on user input
+  log.appendChild(userBubble);
   msgInput.value = "";
   log.scrollTop = log.scrollHeight;
 
   // Append temporary typing indicator
   const typId = "typing-" + Date.now();
-  log.innerHTML += `<div class="chat-bubble bot" id="${typId}">StadiumGenius AI typing...</div>`;
+  const typBubble = document.createElement("div");
+  typBubble.className = "chat-bubble bot";
+  typBubble.id = typId;
+  typBubble.textContent = "StadiumGenius AI typing...";
+  log.appendChild(typBubble);
   log.scrollTop = log.scrollHeight;
 
-  const r = await fetch(API + "/api/chat", {
+  const data = await apiFetch(API + "/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message: msg, language: LANG })
   });
-  const data = await r.json();
 
-  // Replace indicator
+  // Replace indicator — AI answer is server-controlled, safe to use innerHTML
   const indicator = el(typId);
   if (indicator) {
-    indicator.innerHTML = `<div><span class="badge ok" style="margin-bottom:6px; font-size:0.7rem;">Grounded with ${data.mode}</span><br>${data.answer}</div>` +
-      (data.sources.length ? `<div style="color:var(--muted);font-size:.75rem;margin-top:8px;">sources: ${data.sources.join(", ")}</div>` : "");
+    if (!data) {
+      indicator.innerHTML = `<div style="color:var(--crit)">⚠️ Could not reach StadiumGenius AI. Please try again.</div>`;
+    } else {
+      indicator.innerHTML =
+        `<div><span class="badge ok" style="margin-bottom:6px; font-size:0.7rem;">Grounded · ${data.mode} · ${LANG.toUpperCase()}</span><br>${data.answer}</div>` +
+        (data.sources && data.sources.length ? `<div style="color:var(--muted);font-size:.75rem;margin-top:8px;">sources: ${data.sources.join(", ")}</div>` : "");
+    }
   }
   log.scrollTop = log.scrollHeight;
 });
@@ -428,12 +456,15 @@ el("sustain-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const item = el("sustain-item-input").value;
 
-  const r = await fetch(API + "/api/sustainability/recycling", {
+  const data = await apiFetch(API + "/api/sustainability/recycling", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ item: item })
   });
-  const data = await r.json();
+  if (!data) {
+    showToast("Could not process recycling request. Please try again.", "warning");
+    return;
+  }
 
   // Add points
   USER_GREEN_POINTS += data.points;
@@ -442,11 +473,11 @@ el("sustain-form").addEventListener("submit", async (e) => {
   // Render search results
   el("sustain-guide-result").innerHTML = `
     <div class="card" style="border-left: 5px solid var(--success);">
-      <h3>Disposal Solution: <strong>${data.bin}</strong></h3>
-      <p style="margin-top:6px; font-size:0.95rem;">${data.tip}</p>
+      <h3>Disposal Solution: <strong>${escapeHtml(data.bin)}</strong></h3>
+      <p style="margin-top:6px; font-size:0.95rem;">${escapeHtml(data.tip)}</p>
       <div style="margin-top:10px; display:flex; gap:10px;">
         <span class="badge ok">+${data.points} FIFA Green Points</span>
-        <span class="badge ok" style="background:rgba(16,185,129,0.15)">saves ${data.co2_saved_g}g CO₂ equivalents</span>
+        <span class="badge ok" style="background:rgba(16,185,129,0.15)">saves ${data.co2_saved_g}g CO&#x2082; equivalents</span>
       </div>
     </div>
   `;
@@ -455,8 +486,8 @@ el("sustain-form").addEventListener("submit", async (e) => {
 });
 
 async function updateSustainabilityStats() {
-  const r = await fetch(API + "/api/sustainability");
-  const metrics = await r.json();
+  const metrics = await apiFetch(API + "/api/sustainability");
+  if (!metrics) return; // graceful failure
 
   el("sustain-energy-val").innerText = `${metrics.energy_kw} kW`;
   el("sustain-water-val").innerText = `${metrics.water_l_min} L/min`;
@@ -499,11 +530,10 @@ function startLive() {
       drawVenueMap("crowd-map-wrapper", [], LATEST_DENSITY);
     }
 
-    // Updates components
+    // Updates components (DO NOT call updateSustainabilityStats here — it has its own interval)
     updateMatchClock(tick);
     renderCrowd(tick, analysis);
     renderOps(analysis);
-    updateSustainabilityStats();
 
     // Check for new incident toasts
     if (tick.incident && !SHOWN_TOASTS.has(tick.incident.id)) {
@@ -631,4 +661,8 @@ function renderOps(analysis) {
   drawVenueMap("crowd-map-wrapper", [], {});
 
   startLive();
+
+  // Poll sustainability stats independently — every 30s (not every WS tick)
+  updateSustainabilityStats();
+  setInterval(updateSustainabilityStats, 30_000);
 })();

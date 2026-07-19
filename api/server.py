@@ -21,8 +21,8 @@ from typing import List, Optional
 
 import core.sustainability as sustainability_engine
 import core.transport as transport_engine
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
@@ -55,6 +55,26 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Inject HTTP security headers into every response."""
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "connect-src 'self' ws: wss:; "
+        "img-src 'self' data:;"
+    )
+    return response
+
 # --- in-process live simulator state (protected by asyncio lock) ----------
 _sim_lock = asyncio.Lock()
 
@@ -66,6 +86,20 @@ SIM_STATE = {
     "rng": random.Random(42),
     "incidents": []
 }
+
+# --- Crowd analysis cache: avoids re-running crowd_analyze() for same tick --
+_CROWD_CACHE: dict = {"tick_t": -1, "analysis": None}
+
+
+def _get_crowd_analysis(tick: dict) -> dict:
+    """Return cached crowd analysis for the current tick, or compute and cache."""
+    if _CROWD_CACHE["tick_t"] != tick["t"]:
+        analysis = crowd_analyze(tick["sensors"], tick["phase"], tick["intensity"])
+        analysis["trend"] = predict_trend(SIM_STATE["history"])
+        analysis["minute"] = tick["minute"]
+        _CROWD_CACHE["tick_t"] = tick["t"]
+        _CROWD_CACHE["analysis"] = analysis
+    return _CROWD_CACHE["analysis"]
 
 
 def _tick():
@@ -177,9 +211,7 @@ def navigate(req: NavReq):
 async def crowd():
     await _ensure_ticking()
     tick = SIM_STATE["last_tick"]
-    analysis = crowd_analyze(tick["sensors"], tick["phase"], tick["intensity"])
-    analysis["trend"] = predict_trend(SIM_STATE["history"])
-    analysis["minute"] = tick["minute"]
+    analysis = _get_crowd_analysis(tick)  # cached — no duplicate compute
     return analysis
 
 
@@ -187,9 +219,7 @@ async def crowd():
 async def ops():
     await _ensure_ticking()
     tick = SIM_STATE["last_tick"]
-    analysis = crowd_analyze(tick["sensors"], tick["phase"], tick["intensity"])
-    analysis["trend"] = predict_trend(SIM_STATE["history"])
-    analysis["minute"] = tick["minute"]
+    analysis = dict(_get_crowd_analysis(tick))  # shallow copy before mutating
     # staff allocation suggestions (simple heuristic)
     critical = [a for a in analysis["alerts"] if a["level"] == "critical"]
     analysis["staff_allocation"] = (
