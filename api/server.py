@@ -6,45 +6,60 @@ Endpoints:
 - POST /api/chat               -> RAG-grounded multilingual assistant
 - POST /api/translate          -> translate text to target language
 - POST /api/navigate           -> accessibility-first / crowd-aware routing
-- POST /api/crowd              -> crowd analysis from latest sensor tick
+- GET  /api/crowd              -> crowd analysis from latest sensor tick
 - GET  /api/ops                -> operational intelligence snapshot
 - WS   /ws/live                -> streaming live sensor + crowd + incident feed
 """
 import asyncio
 import json
 import random
-from datetime import datetime, timedelta
+import time
+import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import List, Optional
 
+import core.sustainability as sustainability_engine
+import core.transport as transport_engine
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from core import chat as genai_chat, translate as genai_translate
 from core import route as nav_route, nearest_of
 from core import analyze as crowd_analyze, predict_trend
 from core import generate_incident_response
+from core.genai import recommend_fan_experience
 from data.venue import NODES
 from sim.simulator import generate_tick, HOTSPOTS
 
 WEB_DIR = Path(__file__).parent.parent / "web"
 ASSET_DIR = Path(__file__).parent.parent / "data"
 
+# Configure allowed CORS origins from environment or default to localhost dev origins
+_RAW_ORIGINS = os.environ.get(
+    "ALLOWED_ORIGINS",
+    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000"
+)
+ALLOWED_ORIGINS: List[str] = [o.strip() for o in _RAW_ORIGINS.split(",") if o.strip()]
+
 app = FastAPI(title="StadiumGenius AI", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
-# --- in-process live simulator state -------------------------------------
+# --- in-process live simulator state (protected by asyncio lock) ----------
+_sim_lock = asyncio.Lock()
+
 SIM_STATE = {
-    "kickoff": datetime.utcnow() - timedelta(minutes=45),
+    "kickoff": datetime.now(timezone.utc) - timedelta(minutes=45),
     "t": 0,
     "last_tick": None,
     "history": [],
@@ -60,7 +75,7 @@ def _tick():
     SIM_STATE["history"].append(tick["intensity"])
     if len(SIM_STATE["history"]) > 20:
         SIM_STATE["history"].pop(0)
-    
+
     # Check if simulator generated a random incident
     if tick.get("incident"):
         inc = tick["incident"]
@@ -69,7 +84,7 @@ def _tick():
         SIM_STATE["incidents"].append(inc)
         if len(SIM_STATE["incidents"]) > 10:
             SIM_STATE["incidents"].pop(0)
-            
+
     return tick
 
 
@@ -80,42 +95,50 @@ async def _ensure_ticking():
 
 # --- request models -------------------------------------------------------
 class ChatReq(BaseModel):
-    message: str
-    language: str = "en"
+    message: str = Field(..., min_length=1, max_length=5000)
+    language: str = Field(default="en", max_length=10)
 
 
 class TranslateReq(BaseModel):
-    text: str
-    target: str
-    source: str = "en"
+    text: str = Field(..., min_length=1, max_length=5000)
+    target: str = Field(..., max_length=10)
+    source: str = Field(default="en", max_length=10)
 
 
 class NavReq(BaseModel):
-    start: str
-    goal: str = None
-    goal_type: str = None   # e.g. "restroom", "exit", "food"
+    start: str = Field(..., max_length=50)
+    goal: Optional[str] = Field(default=None, max_length=50)
+    goal_type: Optional[str] = Field(default=None, max_length=50)  # e.g. "restroom", "exit", "food"
     accessible_only: bool = False
     crowd_aware: bool = True
 
 
 class IncidentReq(BaseModel):
-    kind: str
-    node: str
-    severity: str
+    kind: str = Field(..., max_length=50)
+    node: str = Field(..., max_length=50)
+    severity: str = Field(..., max_length=20)
+
+    @field_validator("severity")
+    @classmethod
+    def validate_severity(cls, v: str) -> str:
+        allowed = {"low", "medium", "high"}
+        if v not in allowed:
+            raise ValueError(f"severity must be one of {allowed}")
+        return v
 
 
 class SustainReq(BaseModel):
-    item: str
+    item: str = Field(..., min_length=1, max_length=200)
 
 
 class TransportReq(BaseModel):
-    start_node: str
-    destination_type: str = "transit"
+    start_node: str = Field(..., max_length=50)
+    destination_type: str = Field(default="transit", max_length=50)
 
 
 class FanExpReq(BaseModel):
-    preferences: list = []
-    language: str = "en"
+    preferences: List[str] = Field(default_factory=list)
+    language: str = Field(default="en", max_length=10)
 
 
 # --- REST routes ----------------------------------------------------------
@@ -184,20 +207,19 @@ def nodes():
 
 @app.post("/api/incident")
 def create_incident(req: IncidentReq):
-    import time
     inc = {
-        "id": f"INC-{int(time.time())}-{random.randint(100,999)}",
+        "id": f"INC-{int(time.time())}-{random.randint(100, 999)}",
         "kind": req.kind,
         "node": req.node,
         "severity": req.severity,
         "minute": round(SIM_STATE["last_tick"]["minute"] if SIM_STATE["last_tick"] else 0.0, 1),
-        "reported_at": datetime.utcnow().isoformat() + "Z",
+        "reported_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
     res = generate_incident_response(inc)
     inc["response_steps"] = res.get("response_steps", "")
     SIM_STATE["incidents"].append(inc)
     if len(SIM_STATE["incidents"]) > 10:
-         SIM_STATE["incidents"].pop(0)
+        SIM_STATE["incidents"].pop(0)
     return {"ok": True, "incident": inc}
 
 
@@ -210,14 +232,12 @@ def list_incidents():
 async def sustainability_metrics():
     await _ensure_ticking()
     tick = SIM_STATE["last_tick"]
-    import core.sustainability as sustainability_engine
     metrics = sustainability_engine.get_metrics(tick["minute"], tick["intensity"])
     return metrics
 
 
 @app.post("/api/sustainability/recycling")
 def recycling_query(req: SustainReq):
-    import core.sustainability as sustainability_engine
     return sustainability_engine.get_recycling_guidance(req.item)
 
 
@@ -225,7 +245,6 @@ def recycling_query(req: SustainReq):
 async def transport_trip(req: TransportReq):
     await _ensure_ticking()
     tick = SIM_STATE["last_tick"]
-    import core.transport as transport_engine
     return transport_engine.plan_trip(req.start_node, req.destination_type, tick["phase"], tick["minute"])
 
 
@@ -233,7 +252,6 @@ async def transport_trip(req: TransportReq):
 async def fan_experience(req: FanExpReq):
     await _ensure_ticking()
     tick = SIM_STATE["last_tick"]
-    from core.genai import recommend_fan_experience
     return recommend_fan_experience(tick["phase"], req.preferences, req.language)
 
 

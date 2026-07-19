@@ -6,6 +6,7 @@
 - Returns step-by-step directions with distances/times and accessibility flags.
 """
 import heapq
+import json
 from data.venue import NODES, build_graph
 
 _graph = build_graph()
@@ -39,12 +40,7 @@ def route(start, goal, accessible_only=False, crowd_aware=False, density_map=Non
         if d > dist[u]:
             continue
         for edge in _graph[u]:
-            if accessible_only and edge["accessible"]:
-                # edge accessible_only flag means it's an accessible facility edge;
-                # but we also require both endpoints accessible. Allow all edges here
-                # since accessible_only mode restricts to accessible nodes only.
-                pass
-            if accessible_only and not (NODES[edge["to"]]["accessible"]):
+            if accessible_only and not NODES[edge["to"]]["accessible"]:
                 continue
             cost = _edge_cost(edge, density_map, crowd_aware)
             nd = d + cost

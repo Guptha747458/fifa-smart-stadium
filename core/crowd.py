@@ -5,6 +5,7 @@
 - Generates automated alerts + dynamic re-routing suggestions + staff guidance.
 - Safety recommendations for high-risk phases (halftime, end-of-match).
 """
+import json
 from data.venue import NODES
 
 DENSITY_WARN = 0.75

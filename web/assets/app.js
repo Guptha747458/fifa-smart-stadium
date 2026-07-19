@@ -138,7 +138,11 @@ function drawVenueMap(containerId, activePath = [], densityMap = {}) {
     if (isGoal) nodeClass += " map-node-goal";
 
     svg += `
-      <g class="${nodeClass}" onclick="handleNodeClick('${id}')" id="${containerId}-node-${id}">
+      <g class="${nodeClass}" role="button" tabindex="0"
+         aria-label="${node.name} — ${node.type}${d > 0 ? ', density ' + Math.round(d * 100) + '%' : ''}"
+         onclick="handleNodeClick('${id}')"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();handleNodeClick('${id}')}"
+         id="${containerId}-node-${id}">
         <circle cx="${node.x}" cy="${node.y}" r="7" fill="${nodeColor}" stroke="rgba(255,255,255,0.25)" stroke-width="2" />
         <text x="${node.x + 10}" y="${node.y + 4}" font-size="9" fill="${isStart || isGoal ? '#fff' : '#a0aec0'}">${node.name.split(" ")[0]}</text>
       </g>

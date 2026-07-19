@@ -8,7 +8,7 @@ import json
 import math
 import random
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from data.venue import NODES, VENUE
@@ -38,7 +38,7 @@ def phase_for(minute):
 
 
 def minute_now(kickoff_dt):
-    delta = (datetime.utcnow() - kickoff_dt).total_seconds() / 60.0
+    delta = (datetime.now(timezone.utc) - kickoff_dt).total_seconds() / 60.0
     return delta
 
 
@@ -90,7 +90,7 @@ def maybe_incident(rng, minute):
             "node": node,
             "severity": sev,
             "minute": round(minute, 1),
-            "reported_at": datetime.utcnow().isoformat() + "Z",
+            "reported_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
     return None
 
@@ -116,9 +116,9 @@ def generate_tick(kickoff_dt, rng, t):
 def run_forever(seed=42, interval=2.0):
     """Run a live tick loop; print JSON each interval (used by sim.run)."""
     rng = random.Random(seed)
-    kickoff = datetime.utcnow() - timedelta(minutes=45)  # start mid pre-match
+    kickoff = datetime.now(timezone.utc) - timedelta(minutes=45)  # start mid pre-match
     t = 0
-    print(json.dumps({"status": "simulator_started", "kickoff": kickoff.isoformat() + "Z"}))
+    print(json.dumps({"status": "simulator_started", "kickoff": kickoff.isoformat().replace("+00:00", "Z")}))
     try:
         while True:
             tick = generate_tick(kickoff, rng, t)

@@ -19,6 +19,8 @@
       <span>StadiumGenius <strong>AI</strong></span>
     </div>
     <div class="top-actions">
+      <label for="lang-select" class="sr-only">Interface Language</label>
+      <select id="lang-select" aria-label="Select interface language" title="Interface Language"></select>
       <button id="contrast-btn" class="btn-ghost" aria-pressed="false">High Contrast</button>
     </div>
   </header>
@@ -177,8 +179,9 @@
                 gates, sensory bags, safety protocols, or stadium rules!</div>
             </div>
             <form id="chat-form" style="display:flex; gap:10px;">
+              <label for="chat-msg" class="sr-only">Message to assistant</label>
               <input id="chat-msg" type="text" placeholder="e.g. Can I bring a drone or water bottle?" required
-                aria-label="Message text" />
+                aria-label="Message to StadiumGenius AI assistant" />
               <button type="submit" class="btn-primary" style="white-space:nowrap;">Ask Assistant</button>
             </form>
           </div>

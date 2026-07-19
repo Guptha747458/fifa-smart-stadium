@@ -99,6 +99,29 @@ body {
   align-items: center;
 }
 
+/* Screen-reader-only utility — visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Language selector in topbar — compact, styled to fit */
+#lang-select {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  min-width: 120px;
+  cursor: pointer;
+}
+
 /* Form inputs & aligned controls */
 select, textarea, input[type=text] {
   background: rgba(10, 14, 25, 0.7);
