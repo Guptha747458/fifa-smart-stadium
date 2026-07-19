@@ -1,77 +1,45 @@
 # StadiumGenius AI
 
-Generative AI-powered stadium operations and fan experience platform for the FIFA World Cup 2026.
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)
+![WebSockets](https://img.shields.io/badge/Real--time-WebSockets-2F80ED)
+![Accessibility](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-6A5ACD)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-## What it does
-StadiumGenius AI brings together real-time operations, accessibility, and multilingual support to help fans, staff, and organizers navigate and manage a large-scale stadium environment.
+AI-powered stadium operations and fan experience platform for large-scale events.
 
-## Key capabilities
-- **Smart navigation & wayfinding** — accessibility-first routing and guidance
-- **Crowd management** — predictive density monitoring and automated alerts
-- **Multilingual assistance** — real-time translation support for global visitors
-- **Operational intelligence** — decision-support tools for event organizers
-- **Real-time updates** — live streaming of simulator and platform data through WebSockets
+## Overview
+StadiumGenius AI combines real-time operations, multilingual assistance, and accessibility-first navigation to support fans, staff, and organizers.
 
-## Project structure
-- `api/` — FastAPI backend exposing REST endpoints and WebSocket streaming
-- `core/` — GenAI logic, including orchestration, retrieval, translation, and crowd prediction
-- `data/` — simulated datasets for venues, sensors, schedules, translations, and incidents
-- `sim/` — real-time data simulator for crowd, transit, and sensor events
-- `web/` — accessible web UI built with multilingual support in mind
-- `tests/` — automated test suite
+## Highlights
+- Smart wayfinding and accessibility-first routing
+- Predictive crowd monitoring and alerts
+- Real-time multilingual support
+- Organizer decision-support dashboard
+- Live simulator-driven updates via WebSockets
 
-## Tech stack
-- Python
-- FastAPI
-- Uvicorn
-- Pydantic
-- NumPy
-- WebSockets
-- Jinja2
+## Stack
+- Python, FastAPI, Uvicorn
+- Pydantic, NumPy
+- Jinja2, WebSockets
 - Pytest
 
-## Getting started
-
-### Prerequisites
-- Python 3.11+
-
-### Install dependencies
+## Quick start
 ```bash
 pip install -r requirements.txt
-```
-
-### Run the simulator
-```bash
 python -m sim.run --seed 42
-```
-
-### Start the API and dashboard
-```bash
 python -m api.server
 ```
 
-Then open the app at:
-
-```text
-http://localhost:8000
-```
+Open: `http://localhost:8000`
 
 ## Docker
-You can also run the app with Docker:
-
 ```bash
 docker build -t stadiumgenius-ai .
 docker run -p 8000:8000 -e PORT=8000 stadiumgenius-ai
 ```
 
 ## Testing
-Run the test suite with:
-
 ```bash
 pytest
 ```
-
-## Notes
-- The repository is organized around simulated data and real-time event processing.
-- The project is designed with accessibility and multilingual support in mind.
-- The app uses async-friendly APIs and streaming updates for dynamic stadium scenarios.
